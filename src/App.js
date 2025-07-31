@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as THREE from 'three';
 const defaultThemes = [
   {
     name: "Rustic",
@@ -101,10 +102,10 @@ function App() {
     vr-mode-ui="enabled: false"
   >
     <a-assets>
-      <img id="brick" src="http://localhost:5000/textures/brick.jpg" />
-      <img id="wood" src="http://localhost:5000/textures/wood.jpg" />
-      <img id="marble" src="http://localhost:5000/textures/marble.jpg" />
-    </a-assets>
+  <img id="brick" src="http://localhost:5000/textures/brick.jpg" />
+  <img id="wood" src="http://localhost:5000/textures/wood.jpg" />
+  <img id="marble" src="http://localhost:5000/textures/marble.jpg" />
+</a-assets>
 
     <a-marker preset="hiro">
       <a-box id="paint-box"
@@ -124,13 +125,83 @@ function App() {
     document.getElementById("ar-root").innerHTML = sceneHTML;
   }, []);
 
-  const applyTheme = (textureId, color) => {
+ const applyTheme = (textureId, color) => {
+  try {
     const box = document.querySelector('#paint-box');
-    if (box) {
-      box.setAttribute('material', `src: #${textureId}; color: ${color}`);
+    if (!box) return;
+
+    // Get the underlying Three.js mesh
+    const mesh = box.getObject3D('mesh');
+    if (!mesh || !mesh.material) return;
+    const material = mesh.material;
+
+    const isDefault = ['brick', 'wood', 'marble'].includes(textureId);
+
+    // 🎨 CASE 1: Color-only designs (texture === 'none')
+    if (!textureId || textureId === 'none') {
+      material.map = null;
+      material.color.set(color || '#ffffff');
+      material.needsUpdate = true;
+      console.log(`🎨 Applied color only: ${color}`);
+      return;
     }
-  };
+
+    // 🎨 CASE 2: Default textures
+    if (isDefault) {
+      const img = document.querySelector(`#${textureId}`);
+      if (!img) return;
+
+      new THREE.TextureLoader().load(img.src, (tex) => {
+        tex.generateMipmaps = false;
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        material.map = tex;
+        material.color.set('#ffffff');
+        material.needsUpdate = true;
+        console.log(`🎨 Applied default: ${textureId} + ${color}`);
+      });
+      return;
+    }
+
+    // 🎨 CASE 3: Uploaded textures
+    // 🎨 CASE 3: Uploaded textures
+const imgUrl = `http://localhost:5000/textures/${textureId}.jpg`;
+
+// ⬇️ ADD THIS HERE
+if (
+  textureId === 'none' ||
+  (textureId.startsWith('tex_') && !document.querySelector(`#${CSS.escape(textureId)}`))
+) {
+  // Color-only fallback
+  material.map = null;
+  material.color.set(color || '#ffffff');
+  material.needsUpdate = true;
+  console.warn(`⚠️ Texture not found, applying color only: ${color}`);
+  return; // ⬅️ Important to exit function here
+}
+
+const loader = new THREE.TextureLoader();
+loader.load(
+  imgUrl,
+  (tex) => {
+    tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    material.map = tex;
+    material.color.set('#ffffff');
+    material.needsUpdate = true;
+    console.log(`🎨 Applied uploaded: ${textureId} + ${color}`);
+  },
+  undefined,
+  (err) => console.error(`❌ Failed to load uploaded texture: ${textureId}`, err)
+);
+
   
+  } catch (err) {
+    console.error('❌ applyTheme crashed:', err);
+  }
+};
+
   const saveTitle = async (id) => {
   try {
     await fetch(`http://localhost:5000/api/designs/${id}`, {
@@ -192,12 +263,15 @@ const handleImageUpload = async (e) => {
     // Refresh designs
     const refreshed = await fetch('http://localhost:5000/api/designs');
     const designs = await refreshed.json();
+    
+
     setSavedDesigns(designs);
 
   } catch (err) {
     console.log('Upload failed:', err);
     alert('❌ Failed to upload image');
   }
+   e.target.value = '';
 };
 
 
@@ -229,6 +303,7 @@ const handleImageUpload = async (e) => {
       borderRadius: '4px',
       background: '#f0f0f0',
       border: '1px solid #ccc'
+      
     }}
   />
     <div
@@ -240,6 +315,7 @@ const handleImageUpload = async (e) => {
     marginTop: '10px',
     maxWidth: '100vw'
   }}
+  
 >
   {defaultThemes.map((theme, index) => (
     <div
@@ -353,7 +429,9 @@ const handleImageUpload = async (e) => {
   src={`http://localhost:5000/textures/${design.texture}.jpg`}
   alt={design.texture}
   style={{ width: '30px', height: '30px', borderRadius: '4px', objectFit: 'cover' }}
+  onError={(e) => { e.target.style.display = 'none'; }} // hide if missing
 />
+
 
 )}
 
