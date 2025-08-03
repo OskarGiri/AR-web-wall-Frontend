@@ -1,17 +1,38 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ARpage from "./pages/ARpage";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Homepage from "./pages/Homepage";
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/Arpage" element={<ARpage />} />
-        
+import ARpage from "./pages/ARpage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ForgetPasswordPage from "./pages/ForgetPasswordPage";
+import ProfilePage from "./pages/ProfilePage";
+function AppRoutes() {
+  const location = useLocation(); 
 
-      </Routes>
-    </Router>
+  return (
+    <Routes>
+      {/* ✅ Default route is Login page */}
+      <Route path="/" element={<LoginPage />} />
+
+      {/* ✅ Signup page */}
+      <Route path="/signup" element={<SignupPage />} />
+
+      
+      <Route path="/forget-password" element={<ForgetPasswordPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+
+      {/* ✅ Homepage now moved to /home */}
+      <Route path="/home" element={<Homepage key={location.key} />} />
+
+      {/* ✅ AR page */}
+      <Route path="/Arpage" element={<ARpage key={location.key} />} />
+    </Routes>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <AppRoutes />
+    </Router>
+  );
+}

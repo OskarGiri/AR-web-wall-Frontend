@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import * as THREE from 'three';
-
 const defaultThemes = [
   {
     name: "Rustic",
@@ -40,30 +39,58 @@ function ARpage() {
 
   // Insert AR scene
   useEffect(() => {
-    const sceneHTML = `
-      <a-scene embedded arjs="sourceType: webcam;" renderer="logarithmicDepthBuffer: true;" vr-mode-ui="enabled: false">
-        <a-assets>
-          <img id="brick" src="http://localhost:5000/textures/brick.jpg" />
-          <img id="wood" src="http://localhost:5000/textures/wood.jpg" />
-          <img id="marble" src="http://localhost:5000/textures/marble.jpg" />
-        </a-assets>
+  // Inject AR scene
+  const sceneHTML = `
+    <a-scene
+      embedded
+      arjs="sourceType: webcam;"
+      renderer="logarithmicDepthBuffer: true;"
+      vr-mode-ui="enabled: false"
+    >
+      <a-assets>
+        <img id="brick" src="http://localhost:5000/textures/brick.jpg" />
+        <img id="wood" src="http://localhost:5000/textures/wood.jpg" />
+        <img id="marble" src="http://localhost:5000/textures/marble.jpg" />
+      </a-assets>
 
-        <a-marker preset="hiro">
-          <a-box id="paint-box"
-            position="0 1 0"
-            rotation="-90 0 0"
-            depth="0.05"
-            height="1.5"
-            width="2.5"
-            material="src: #brick; color: yellow;">
-          </a-box>
-        </a-marker>
+      <a-marker preset="hiro">
+        <a-box id="paint-box"
+          position="0 1 0"
+          rotation="-90 0 0"
+          depth="0.05"
+          height="1.5"
+          width="2.5"
+          material="src: #brick; color: yellow;">
+        </a-box>
+      </a-marker>
 
-        <a-entity camera></a-entity>
-      </a-scene>
-    `;
-    document.getElementById("ar-root").innerHTML = sceneHTML;
-  }, []);
+      <a-entity camera></a-entity>
+    </a-scene>
+  `;
+
+  const arRoot = document.getElementById("ar-root");
+  arRoot.innerHTML = sceneHTML;
+
+  // ✅ Cleanup on unmount
+return () => {
+  // Stop webcam if active
+  const video = document.querySelector("video");
+  if (video && video.srcObject) {
+    const tracks = video.srcObject.getTracks();
+    tracks.forEach(track => track.stop());
+  }
+
+  // Clear AR scene
+  arRoot.innerHTML = "";
+
+  // Reset body background to white
+  document.body.style.backgroundColor = "white";
+
+  // ✅ Signal Homepage to refresh on next mount
+  sessionStorage.setItem("refreshHome", "true");
+};
+
+}, []);
 
   // Save design
   const saveDesign = async () => {

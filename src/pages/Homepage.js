@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./Homepage.css";
 import { useNavigate } from "react-router-dom";
 
 export default function Homepage() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const needsRefresh = sessionStorage.getItem("refreshHome");
+    if (needsRefresh === "true") {
+      sessionStorage.removeItem("refreshHome"); // clear the flag
+      window.location.reload(); // refresh once automatically
+    }
+  }, []);
 
   const categories = ["All", "Hall", "Bedroom", "Kitchen"];
   const designs = [
@@ -56,3 +64,4 @@ export default function Homepage() {
     </div>
   );
 }
+
