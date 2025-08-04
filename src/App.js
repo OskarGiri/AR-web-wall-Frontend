@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ForgetPasswordPage from "./pages/ForgetPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
+import FavoritePage from "./pages/FavoritePage";
 function AppRoutes() {
   const location = useLocation(); 
 
@@ -25,6 +26,8 @@ function AppRoutes() {
 
       {/* ✅ AR page */}
       <Route path="/Arpage" element={<ARpage key={location.key} />} />
+      {/* ✅ Favorites page */}
+      <Route path="/Favorites" element={<FavoritePage key={location.key} />} />
     </Routes>
   );
 }

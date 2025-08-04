@@ -118,3 +118,21 @@
 .ar-button:hover {
   background: #0056b3;
 }
+
+.Favorite {
+  position: absolute;
+  bottom: 20px;
+  right: calc(42% - 150px); /* Shift to the left of AR button */
+  background: #ff4757; /* Red theme for favorites */
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.Favorite:hover {
+  background: #c0392b;
+}
